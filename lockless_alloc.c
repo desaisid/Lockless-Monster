@@ -1,8 +1,6 @@
-/* 
-Important to remember here that we are looking at a single allocating process
-on a core - 
-Unfortunately - this is required because on some processors the compare and swap
-or equivalent instructions work on a per core basis
+/*
+Implementation of a simple lockless memory allocator with fixed sized buffers
+ 
 */
 
 #include <stdio.h>
@@ -10,7 +8,7 @@ or equivalent instructions work on a per core basis
 #define ALIGNMENT_PADDING 0
 #define BUFFER_SIZE       256
 #define PADDING_SIZE      16
-#define PADDING_DATA      "########################################################################"
+#define PADDING_DATA      "#############################################"
 #define LOW_WATERMARK     20 /* Warn if less than 20% buffers are free */
 #define WARNING(X)        (printf("Help! Only %d buffers are free!",X));
 
@@ -62,7 +60,8 @@ void buff_init(void * mem_area_ptr, int size)
   {
      /* in the initial free list, next points to next contiguous buffer */
      bufptr[i].next = &(bufptr[i+1]);
-     /* todo : initialize padding area */
+     /* initialize padding area with a pattern so that we can catch overflows */
+     memcpy(&(bufptr[i].padding[0]),PADDING_DATA,PADDING_SIZE);
   }
   bufptr[i].next = NULL;
   free_list_ptr->items = nb_buffers;
